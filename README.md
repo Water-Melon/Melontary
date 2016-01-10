@@ -53,7 +53,6 @@ Example
 2. Now we write a PHP file to fill the variables in template file.
 
     *vim php/example.php*
-    <!--PHP file: php/example.php-->
         <?php
         require_once('melontary.php');
 
@@ -85,7 +84,6 @@ Example
 
     *php php/example.php*
     
-    <!--result html file-->
     <html>
         <head>
             <meta charset="utf-8">
@@ -97,4 +95,4 @@ Example
                 Hello World
             </p>
         </body>
-    </html>
+    </html>·
