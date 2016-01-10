@@ -22,7 +22,7 @@ Example
             <title>test</title>
         </head>
         <body>
-        	<p>
+            <p>
                 <!--@
                 {
                     "var":"a",
@@ -85,7 +85,8 @@ Example
 
     *php php/example.php*
     
-    <!--result html file--><html>
+    <!--result html file-->
+    <html>
         <head>
             <meta charset="utf-8">
             <title>test</title>
