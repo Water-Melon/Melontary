@@ -1,0 +1,256 @@
+
+#
+# Copyright (C) Niklaus F.Schen.
+#
+
+#!/bin/sh
+
+root_path=`pwd`
+conf_path="$root_path/conf/melontary.xml"
+
+echo "Melontary framework V1.0.0."
+echo "Copyright (C) Niklaus F.Schen."
+
+#process parameters
+for param in $@
+do
+	if [ $param == "--help" ]; then
+		echo -e "\nMelontary framework."
+		echo "Copyright (C) Niklaus F.Schen."
+		echo "Options:"
+		echo -e "\t--path=ROOT_PATH"
+		echo -e "\t--conf_path=CONFIGURATION_FILE_PATH"
+		exit 0
+	fi
+
+	param_prefix=`echo $param|cut -d '=' -f 1`
+	param_suffix=`echo $param|cut -d '=' -f 2`
+
+	if [ $param_prefix == "--path" ]; then
+		root_path=$param_suffix
+	elif [ $param_prefix == "--conf_path" ]; then
+		conf_path=$param_suffix;
+	else
+		echo "Error: Invalid option \"$param\"."
+		exit 1
+	fi
+done
+
+#create misc file
+echo "<?php" > php/melontary.php
+echo "/*" >> php/melontary.php
+echo " * Copyright (C) Niklaus F.Schen." >> php/melontary.php
+echo " */" >> php/melontary.php
+echo "class mHook" >> php/melontary.php
+echo "{" >> php/melontary.php
+echo "    private \$proc;" >> php/melontary.php
+echo "    private \$destroy;" >> php/melontary.php
+echo "    public  \$value;" >> php/melontary.php
+echo "    private \$data;" >> php/melontary.php
+echo "    function __construct(callable \$proc, callable \$destroy, &\$value, &\$data)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$this->proc = \$proc;" >> php/melontary.php
+echo "        \$this->destroy = \$destroy;" >> php/melontary.php
+echo "        \$this->value = &\$value;" >> php/melontary.php
+echo "        \$this->data = &\$data;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    function __destruct()" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        if (\$this->data != NULL && \$this->destroy != NULL)" >> php/melontary.php
+echo "            call_user_func(\$this->destroy, \$this->data);" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    public function execute(&\$fillValues)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        return call_user_func(\$this->proc, \$fillValues, \$this->data);" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "}" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "class melontary" >> php/melontary.php
+echo "{" >> php/melontary.php
+echo "    private \$root = '$root_path';" >> php/melontary.php
+echo "    private \$confPath = '$conf_path';" >> php/melontary.php
+echo "    private \$hooks;" >> php/melontary.php
+echo "    private \$template;" >> php/melontary.php
+echo "    private \$templateSuffix;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "    function __construct(\$load_conf = 1)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$this->hooks = array();" >> php/melontary.php
+echo "        \$this->template = NULL;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        if (!\$load_conf) return;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        \$conf_path = \$this->confPath;" >> php/melontary.php
+echo "        if ((\$fh = fopen(\$conf_path, 'r')) == false) {" >> php/melontary.php
+echo "            throw new Exception('Open '.\$conf_path.' failed.');" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        \$parser = xml_parser_create('UTF-8');" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        xml_parser_set_option(\$parser, XML_OPTION_CASE_FOLDING, false);" >> php/melontary.php
+echo "        xml_set_element_handler(\$parser, \"self::startElement\", \"self::endElement\");" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        while (\$data = fread(\$fh, 4096)) {" >> php/melontary.php
+echo "            if (!xml_parse(\$parser, \$data, feof(\$fh))) {" >> php/melontary.php
+echo "                \$msg = 'xml_parse error: '.xml_error_string(xml_get_error_code(\$parser));" >> php/melontary.php
+echo "                \$msg .= ('line: '.xml_get_current_line_number(\$parser));" >> php/melontary.php
+echo "                fclose(\$fh);" >> php/melontary.php
+echo "                xml_parser_free(\$parser);" >> php/melontary.php
+echo "                throw new Exception(\$msg);" >> php/melontary.php
+echo "            }" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        fclose(\$fh);" >> php/melontary.php
+echo "        xml_parser_free(\$parser);" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "    private function startElement(\$parser, \$name, \$attributes)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        if (\$name == 'template') {" >> php/melontary.php
+echo "            \$this->template = \$attributes['path'];" >> php/melontary.php
+echo "            \$this->templateSuffix = \$attributes['suffix'];" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    private function endElement(\$parser, \$name)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        return;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "    private function getPos(&\$str, &\$start, &\$end)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$prefix_len = strlen('<!--@');" >> php/melontary.php
+echo "        \$suffix_len = strlen('@-->');" >> php/melontary.php
+echo "        \$prefix = '<!--@';" >> php/melontary.php
+echo "        \$suffix = '@-->';" >> php/melontary.php
+echo "        \$level = 0;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        \$first_head = strpos(\$str, \$prefix, 0);" >> php/melontary.php
+echo "        if (\$first_head === false) {" >> php/melontary.php
+echo "            \$start = false;" >> php/melontary.php
+echo "            return true;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        \$start = \$first_head;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        \$level++;" >> php/melontary.php
+echo "        \$last_end = strpos(\$str, \$suffix, \$first_head+\$prefix_len);" >> php/melontary.php
+echo "        if (\$last_end === false) return false;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        while (1) {" >> php/melontary.php
+echo "            \$first_head = strpos(\$str, \$prefix, \$first_head+\$prefix_len);" >> php/melontary.php
+echo "            if (\$first_head === false) break;" >> php/melontary.php
+echo "            if (\$first_head < \$last_end) \$level++;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        for (\$i = 1; \$i < \$level; \$i++) {" >> php/melontary.php
+echo "            \$last_end = strpos(\$str, \$suffix, \$last_end+\$suffix_len);" >> php/melontary.php
+echo "            if (\$last_end === false) return false;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        \$end = \$last_end;" >> php/melontary.php
+echo "        return true;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    private function replace(&\$str)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$start = 0;" >> php/melontary.php
+echo "        \$end = 0;" >> php/melontary.php
+echo "        if (\$this->getPos(\$str, \$start, \$end) === false) {" >> php/melontary.php
+echo "            return false;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        if (\$start !== false) {" >> php/melontary.php
+echo "            \$str = \$this->process(\$str, strlen(\$str));" >> php/melontary.php
+echo "            if (\$str === false) return false;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        return \$this->parse(\$str);" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    private function parse(&\$str)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        if ((\$obj = json_decode(\$str, true)) == NULL) {" >> php/melontary.php
+echo "            return false;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        if (isset(\$obj['var']) === false) {" >> php/melontary.php
+echo "            return false;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        if (isset(\$this->hooks[\$obj['var']]) === false) {" >> php/melontary.php
+echo "            return \"\";" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        \$hook = \$this->hooks[\$obj['var']];" >> php/melontary.php
+echo "        if (\$hook->value === NULL) {" >> php/melontary.php
+echo "            if (isset(\$obj['values']) === false) {" >> php/melontary.php
+echo "                \$values = array();" >> php/melontary.php
+echo "            } else {" >> php/melontary.php
+echo "                \$values = \$obj['values'];" >> php/melontary.php
+echo "                if (\$values == NULL) {" >> php/melontary.php
+echo "                    \$values = array();" >> php/melontary.php
+echo "                }" >> php/melontary.php
+echo "            }" >> php/melontary.php
+echo "            return \$hook->execute(\$values);" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        return \$hook->value;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    private function process(&\$str, \$length)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$result = '';" >> php/melontary.php
+echo "        \$prefix_len = strlen('<!--@');" >> php/melontary.php
+echo "        \$suffix_len = strlen('@-->');" >> php/melontary.php
+echo "        \$start = 0;" >> php/melontary.php
+echo "        \$end = 0;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        while (\$length > 0) {" >> php/melontary.php
+echo "            if (\$this->getPos(\$str, \$start, \$end) == false) {" >> php/melontary.php
+echo "                return false;" >> php/melontary.php
+echo "            }" >> php/melontary.php
+echo "            if (\$start === false) {" >> php/melontary.php
+echo "                break;" >> php/melontary.php
+echo "            }" >> php/melontary.php
+echo "            \$result .= substr(\$str, 0, \$start);" >> php/melontary.php
+echo "            \$proc_len = \$end-(\$start+\$prefix_len);" >> php/melontary.php
+echo "            \$tmp = \$this->replace(substr(\$str, \$start+\$prefix_len, \$proc_len));" >> php/melontary.php
+echo "            if (\$tmp === false) {" >> php/melontary.php
+echo "                return false;" >> php/melontary.php
+echo "            }" >> php/melontary.php
+echo "            \$result .= \$tmp;" >> php/melontary.php
+echo "            \$str = substr(\$str, \$end+\$suffix_len);" >> php/melontary.php
+echo "            \$length -= (\$end + \$suffix_len);" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        return \$result.\$str;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "    public function getRoot()" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        return \$this->root;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    public function getConfPath()" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        return \$this->confPath;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    public function addHook(\$key, callable \$proc, callable \$destroy," >> php/melontary.php
+echo "                            \$value = NULL, \$data = NULL)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$ret = \$this->hooks[\$key];" >> php/melontary.php
+echo "        \$hook = new mHook(\$proc, \$destroy, \$value, \$data);" >> php/melontary.php
+echo "        \$this->hooks[\$key] = \$hook;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "        return \$ret;" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    public function dropHook(\$key)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$hook = \$this->hooks[\$key];" >> php/melontary.php
+echo "        if (\$hook != NULL) {" >> php/melontary.php
+echo "            unset(\$hook);" >> php/melontary.php
+echo "            \$this->hooks[\$key] = NULL;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "    public function fillTemplate(\$name)" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        if (\$this->template[0] === '/') {" >> php/melontary.php
+echo "            \$templateFile = \$this->template.'/'.\$name.'.'.\$this->templateSuffix;" >> php/melontary.php
+echo "        } else {" >> php/melontary.php
+echo "            \$templateFile = \$this->root.'/'.\$this->template.'/'.\$name.'.'.\$this->templateSuffix;" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        \$length = filesize(\$templateFile);" >> php/melontary.php
+echo "        if (\$file = fopen(\$templateFile, 'r')) {" >> php/melontary.php
+echo "            \$template = fread(\$file, \$length);" >> php/melontary.php
+echo "            fclose(\$file);" >> php/melontary.php
+echo "        }" >> php/melontary.php
+echo "        return \$this->process(\$template, \$length);" >> php/melontary.php
+echo "    }" >> php/melontary.php
+echo "}" >> php/melontary.php
+echo "?>" >> php/melontary.php

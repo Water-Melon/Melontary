@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Copyright (C) Niklaus F.Schen. -->
+<!DOCTYPE config [
+	<!ELEMENT config (connection*)>
+	<!ELEMENT connection EMPTY>
+	<!ATTLIST connection utility CDATA #REQUIRED>
+	<!ATTLIST connection user CDATA #REQUIRED>
+	<!ATTLIST connection passwd CDATA #REQUIRED>
+	<!ATTLIST connection ip CDATA #REQUIRED>
+	<!ATTLIST connection port CDATA #REQUIRED>
+	<!ELEMENT debug EMPTY>
+	<!ATTLIST debug status CDATA #REQUIRED>
+	<!ELEMENT log EMPTY>
+	<!ATTLIST log path CDATA #REQUIRED>
+	<!ATTLIST log level CDATA #REQUIRED>
+	<!ELEMENT template EMPTY>
+	<!ATTLIST template path CDATA #REQUIRED>
+	<!ATTLIST template suffix CDATA #REQUIRED>
+	<!--
+		we can use this way to extend config file.
+		<!ENTITY extend_file SYSTEM "file_path.xml"
+	-->
+]>
+<config>
+	<connection utility="" user="" passwd="" ip="" port=""/>
+	<debug status="on"/>
+	<log path="" level="debug"/>
+	<template path="templates" suffix="html"/>
+</config>

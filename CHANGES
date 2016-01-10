@@ -1,0 +1,5 @@
+Changes with melontary 1.0.0                                      10 Jan 2016
+    *) Implemented a class for log.
+    *) Implemented a class for debug.
+    *) Implemented a class of mysql database.
+    *) Implemented a class for filling template.
