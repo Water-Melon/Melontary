@@ -15,30 +15,31 @@ Build
 Example
 =======
 1. we have an html file *example.html*.
-   
-    <!--html file: templates/example.html--><html>
-        <head>
-            <meta charset="utf-8">
-            <title>test</title>
-        </head>
-        <body>
-            <p>
-                <!--@
-                {
-                    "var":"a",
-                    "values":{
-                        "1st":"hi <!--@{"var":"c","values":{"2nd":"world"}}@-->"
+
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <title>test</title>
+            </head>
+            <body>
+                <p>
+                    <!--@
+                    {
+                        "var":"a",
+                        "values":{
+                            "1st":"hi <!--@{"var":"c","values":{"2nd":"world"}}@-->"
+                        }
                     }
-                }
-                @-->
-               <!--@
-               {
-                    "var":"b"
-               }
-               @-->
-            </p>
-        </body>
-    </html>
+                    @-->
+                    <!--@
+                    {
+                        "var":"b"
+                    }
+                    @-->
+                </p>
+            </body>
+        </html>
 
     The *var* and *values* are the keywords.
 
@@ -53,6 +54,7 @@ Example
 2. Now we write a PHP file to fill the variables in template file.
 
     *vim php/example.php*
+    
         <?php
         require_once('melontary.php');
 
@@ -83,16 +85,17 @@ Example
 3. The result.
 
     *php php/example.php*
-    
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <title>test</title>
-        </head>
-        <body>
-            <p>
-                hi world
-                Hello World
-            </p>
-        </body>
-    </html>·
+
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <title>test</title>
+            </head>
+            <body>
+                <p>
+                    hi world
+                    Hello World
+                </p>
+            </body>
+        </html>
