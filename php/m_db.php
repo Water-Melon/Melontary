@@ -112,6 +112,32 @@ class mDB
         return;
     }
 
+    private function quoteField(&$field)
+    {
+        return "`".$field."`";
+    }
+    private function quoteValue(&$value)
+    {
+        return "'".$value."'";
+    }
+
+    private function where(array $conditions, $logic, $relation=array())
+    {
+        if (empty($conditions)) return '';
+
+        $result = array();
+        foreach ($conditions as $key => $value) {
+            if (!is_array($relation) || !isset($relation[$key])) {
+                $result[] = $this->quoteField($key).'='.$this->quoteValue($value);
+            } else {
+                $result[] = $this->quoteField($key).$relation[$key].$this->quoteValue($value);
+            }
+        }
+
+        return 'where '.implode($logic, $result);
+    }
+
+
     public function connectionExistent($utility)
     {
         if (isset($this->connections[$utility]))
@@ -170,29 +196,124 @@ class mDB
         }
         return true;
     }
-    public function execute(/*$utility, ...*/)
+    public function &getDBHandle($utility)
     {
-        if (($num = func_num_args()) == 0) return false;
-
-        $utility = func_get_arg(0);
         if (!$this->connectionExistent($utility) || !$this->connections[$utility]->isActive())
             return false;
-        $handle = &$this->connections[$utility]->getDBHandle();
+        return $this->connections[$utility]->getDBHandle();
+    }
 
-        $sql = '';
-        for ($i = 1; $i < $num; $i++) {
-            $value = func_get_arg($i);
-            if (is_int($value) || is_float($value) || is_bool($value)) {
-                $sql .= strval($value);
-            } else if (is_string($value)) {
-                $sql .= $value;
-            } else {
-                return false;
-            }
-            if ($i + 1 < $num) $sql .= ' ';
+    public function insert($utility, $table, array $data, $ignore=false)
+    {
+        if (!$this->connectionExistent($utility) || !$this->connections[$utility]->isActive())
+            return false;
+        $handle = &$this->getDBHandle($utility);
+
+        $fields = $values = array();
+        foreach ($data as $key => $value) {
+            $fields[] = $this->quoteField($key);
+            $values[] = $this->quoteValue(addslashes($value));
         }
-        $sql .= ';';
-        return mysql_query($sql, $handle);
+        $sql = "insert";
+        if ($ignore) $sql .= " ignore";
+        $sql .= " into ".$table."(".implode(',', $fields).") values(".implode(',', $values).")";
+        if (mysql_query($sql, $handle) == false) {
+            return false;
+        }
+        return true;
+    }
+    public function delete($utility, $table, array $conditions=array(), $logic='AND')
+    {
+        if (!$this->connectionExistent($utility) || !$this->connections[$utility]->isActive())
+            return false;
+        $handle = &$this->getDBHandle($utility);
+
+        $sql = 'delete from '.$table.$this->where($conditions, $logic);
+
+        if (mysql_query($sql, $handle) == false) {
+            return false;
+        }
+        return true;
+    }
+    public function update($utility, $table, array $data, array $conditions=array(), $logic='AND', $ignore=false)
+    {
+        if (!$this->connectionExistent($utility) || !$this->connections[$utility]->isActive())
+            return false;
+        $handle = &$this->getDBHandle($utility);
+
+        /*set*/
+        $set = "set ";
+        $fields = array();
+        foreach ($data as $key => $value) {
+            $fields[] = $this->quoteField($key).'='.$this->quoteValue($value);
+        }
+        $set .= implode(',', $fields);
+
+        $sql = 'update ';
+        if ($ignore) $sql .= "ignore ";
+        $sql .= $table.' '.$set.' ';
+        $sql .= $this->where($conditions, $logic);
+
+        if (mysql_query($sql, $handle) == false) {
+            return false;
+        }
+        return true;
+    }
+    /*
+     * infos:
+     *       'table'         => tablename
+     *       'fields'        => Fields of result
+     *       'where'         => [array] where condition
+     *       'relation'      => relationship of key-value in where
+     *       'logic'         => where logic
+     *       'orderField'    => order by field
+     *       'orderSequence' => orderby Sequence
+     *       'limitStep'     => step of limit
+     *       'limitOffset'   => offset of limit
+     */
+    public function select($utility, array $infos)
+    {
+        if (!$this->connectionExistent($utility) || !$this->connections[$utility]->isActive())
+            return false;
+        $handle = &$this->getDBHandle($utility);
+
+        $sql = "select ";
+        if (!isset($infos['fields'])) {
+            $sql .= '*';
+        } else if (is_array($infos['fields'])) {
+            $sql .= implode(',', $infos['fields']);
+        } else {
+            $sql .= $infos['fields'];
+        }
+        $sql .= ' from '.$infos['table'].' ';
+
+        $sql .= $this->where($infos['where'], $infos['logic'], $infos['relation']);
+
+        if (isset($infos['orderField'])) {
+            $sql .= ' order by '.$infos['orderField'].' ';
+            if (isset($infos['orderSequence'])) {
+                $sql .= $infos['orderSequence'];
+            }
+        }
+
+        if (isset($infos['limitStep'])) {
+            $sql .= ' limit ';
+            if (isset($infos['limitOffset'])) {
+                $sql .= strval($infos['limitOffset']).',';
+            }
+            $sql .= strval($infos['limitStep']);
+        }
+
+        $result = mysql_query($sql, $handle);
+        if ($result === false) return false;
+
+        $rows = array();
+        while ($row = mysql_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        mysql_free_result($result);
+
+        return $rows;
     }
 }
 ?>

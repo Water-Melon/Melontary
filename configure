@@ -8,7 +8,7 @@
 root_path=`pwd`
 conf_path="$root_path/conf/melontary.xml"
 
-echo "Melontary framework V1.0.0."
+echo "Melontary framework V1.0.1."
 echo "Copyright (C) Niklaus F.Schen."
 
 #process parameters

@@ -1,3 +1,6 @@
+Changes with melontary 1.0.1                                      13 Jan 2016
+    *) Updated some interfaces about database.
+
 Changes with melontary 1.0.0                                      10 Jan 2016
     *) Implemented a class for log.
     *) Implemented a class for debug.
