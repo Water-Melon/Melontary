@@ -228,7 +228,7 @@ class mDB
             return false;
         $handle = &$this->getDBHandle($utility);
 
-        $sql = 'delete from '.$table.$this->where($conditions, $logic);
+        $sql = 'delete from '.$table.' '.$this->where($conditions, $logic);
 
         if (mysql_query($sql, $handle) == false) {
             return false;

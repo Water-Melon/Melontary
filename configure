@@ -8,7 +8,7 @@
 root_path=`pwd`
 conf_path="$root_path/conf/melontary.xml"
 
-echo "Melontary framework V1.0.1."
+echo "Melontary framework V1.0.2."
 echo "Copyright (C) Niklaus F.Schen."
 
 #process parameters
@@ -114,51 +114,6 @@ echo "    {" >> php/melontary.php
 echo "        return;" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
-echo "    private function getPos(&\$str, &\$start, &\$end)" >> php/melontary.php
-echo "    {" >> php/melontary.php
-echo "        \$prefix_len = strlen('<!--@');" >> php/melontary.php
-echo "        \$suffix_len = strlen('@-->');" >> php/melontary.php
-echo "        \$prefix = '<!--@';" >> php/melontary.php
-echo "        \$suffix = '@-->';" >> php/melontary.php
-echo "        \$level = 0;" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        \$first_head = strpos(\$str, \$prefix, 0);" >> php/melontary.php
-echo "        if (\$first_head === false) {" >> php/melontary.php
-echo "            \$start = false;" >> php/melontary.php
-echo "            return true;" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        \$start = \$first_head;" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        \$level++;" >> php/melontary.php
-echo "        \$last_end = strpos(\$str, \$suffix, \$first_head+\$prefix_len);" >> php/melontary.php
-echo "        if (\$last_end === false) return false;" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        while (1) {" >> php/melontary.php
-echo "            \$first_head = strpos(\$str, \$prefix, \$first_head+\$prefix_len);" >> php/melontary.php
-echo "            if (\$first_head === false) break;" >> php/melontary.php
-echo "            if (\$first_head < \$last_end) \$level++;" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        for (\$i = 1; \$i < \$level; \$i++) {" >> php/melontary.php
-echo "            \$last_end = strpos(\$str, \$suffix, \$last_end+\$suffix_len);" >> php/melontary.php
-echo "            if (\$last_end === false) return false;" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        \$end = \$last_end;" >> php/melontary.php
-echo "        return true;" >> php/melontary.php
-echo "    }" >> php/melontary.php
-echo "    private function replace(&\$str)" >> php/melontary.php
-echo "    {" >> php/melontary.php
-echo "        \$start = 0;" >> php/melontary.php
-echo "        \$end = 0;" >> php/melontary.php
-echo "        if (\$this->getPos(\$str, \$start, \$end) === false) {" >> php/melontary.php
-echo "            return false;" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        if (\$start !== false) {" >> php/melontary.php
-echo "            \$str = \$this->process(\$str, strlen(\$str));" >> php/melontary.php
-echo "            if (\$str === false) return false;" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        return \$this->parse(\$str);" >> php/melontary.php
-echo "    }" >> php/melontary.php
 echo "    private function parse(&\$str)" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        if ((\$obj = json_decode(\$str, true)) == NULL) {" >> php/melontary.php
@@ -184,32 +139,49 @@ echo "            return \$hook->execute(\$values);" >> php/melontary.php
 echo "        }" >> php/melontary.php
 echo "        return \$hook->value;" >> php/melontary.php
 echo "    }" >> php/melontary.php
-echo "    private function process(&\$str, \$length)" >> php/melontary.php
+echo "    private function process(\$str, &\$end, \$exp)" >> php/melontary.php
 echo "    {" >> php/melontary.php
-echo "        \$result = '';" >> php/melontary.php
 echo "        \$prefix_len = strlen('<!--@');" >> php/melontary.php
 echo "        \$suffix_len = strlen('@-->');" >> php/melontary.php
-echo "        \$start = 0;" >> php/melontary.php
-echo "        \$end = 0;" >> php/melontary.php
+echo "        \$prefix = '<!--@';" >> php/melontary.php
+echo "        \$suffix = '@-->';" >> php/melontary.php
+echo "        \$ret = '';" >> php/melontary.php
+echo "        \$count = 0;" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
-echo "        while (\$length > 0) {" >> php/melontary.php
-echo "            if (\$this->getPos(\$str, \$start, \$end) == false) {" >> php/melontary.php
-echo "                return false;" >> php/melontary.php
-echo "            }" >> php/melontary.php
-echo "            if (\$start === false) {" >> php/melontary.php
+echo "        while (\$str !== false) {" >> php/melontary.php
+echo "            \$head = strpos(\$str, \$prefix);" >> php/melontary.php
+echo "            \$tail = strpos(\$str, \$suffix);" >> php/melontary.php
+echo "            if (\$exp && \$tail === false) return false;" >> php/melontary.php
+echo "            if (\$head !== false && \$tail === false) return false;" >> php/melontary.php
+echo "            if (\$head === \$tail) return \$ret.\$str;" >> php/melontary.php
+echo -en "\n" >> php/melontary.php
+echo "            if (\$head === false || \$head > \$tail) {" >> php/melontary.php
+echo "                if (\$tail !== 0) {" >> php/melontary.php
+echo "                    \$ret .= substr(\$str, 0, \$tail);" >> php/melontary.php
+echo "                }" >> php/melontary.php
+echo "                \$ret = \$this->parse(\$ret);" >> php/melontary.php
+echo "                if (\$ret === false) {" >> php/melontary.php
+echo "                    return false;" >> php/melontary.php
+echo "                }" >> php/melontary.php
+echo "                \$end = \$tail + \$suffix_len + \$count;" >> php/melontary.php
 echo "                break;" >> php/melontary.php
+echo "            } else {" >> php/melontary.php
+echo "                if (\$head !== 0) {" >> php/melontary.php
+echo "                    \$ret .= substr(\$str, 0, \$head);" >> php/melontary.php
+echo "                    \$str = substr(\$str, \$head+\$prefix_len);" >> php/melontary.php
+echo "                    \$count += (\$head+\$prefix_len);" >> php/melontary.php
+echo "                }" >> php/melontary.php
+echo "                \$thisEnd = 0;" >> php/melontary.php
+echo "                \$content = \$this->process(\$str, \$thisEnd, 1);" >> php/melontary.php
+echo "                if (\$content === false) {" >> php/melontary.php
+echo "                    return false;" >> php/melontary.php
+echo "                }" >> php/melontary.php
+echo "                \$ret .= \$content;" >> php/melontary.php
+echo "                \$str = substr(\$str, \$thisEnd);" >> php/melontary.php
+echo "                \$count += \$thisEnd;" >> php/melontary.php
 echo "            }" >> php/melontary.php
-echo "            \$result .= substr(\$str, 0, \$start);" >> php/melontary.php
-echo "            \$proc_len = \$end-(\$start+\$prefix_len);" >> php/melontary.php
-echo "            \$tmp = \$this->replace(substr(\$str, \$start+\$prefix_len, \$proc_len));" >> php/melontary.php
-echo "            if (\$tmp === false) {" >> php/melontary.php
-echo "                return false;" >> php/melontary.php
-echo "            }" >> php/melontary.php
-echo "            \$result .= \$tmp;" >> php/melontary.php
-echo "            \$str = substr(\$str, \$end+\$suffix_len);" >> php/melontary.php
-echo "            \$length -= (\$end + \$suffix_len);" >> php/melontary.php
 echo "        }" >> php/melontary.php
-echo "        return \$result.\$str;" >> php/melontary.php
+echo "        return \$ret;" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
@@ -250,7 +222,8 @@ echo "        if (\$file = fopen(\$templateFile, 'r')) {" >> php/melontary.php
 echo "            \$template = fread(\$file, \$length);" >> php/melontary.php
 echo "            fclose(\$file);" >> php/melontary.php
 echo "        }" >> php/melontary.php
-echo "        return \$this->process(\$template, \$length);" >> php/melontary.php
+echo "        \$end = 0;" >> php/melontary.php
+echo "        return \$this->process(\$template, \$end, 0);" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo "}" >> php/melontary.php
 echo "?>" >> php/melontary.php
