@@ -8,7 +8,7 @@
 root_path=`pwd`
 conf_path="$root_path/conf/melontary.xml"
 
-echo "Melontary framework V1.0.2."
+echo "Melontary framework V1.0.3."
 echo "Copyright (C) Niklaus F.Schen."
 
 #process parameters
@@ -44,24 +44,13 @@ echo " */" >> php/melontary.php
 echo "class mHook" >> php/melontary.php
 echo "{" >> php/melontary.php
 echo "    private \$proc;" >> php/melontary.php
-echo "    private \$destroy;" >> php/melontary.php
-echo "    public  \$value;" >> php/melontary.php
-echo "    private \$data;" >> php/melontary.php
-echo "    function __construct(callable \$proc, callable \$destroy, &\$value, &\$data)" >> php/melontary.php
+echo "    function __construct(callable \$proc)" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        \$this->proc = \$proc;" >> php/melontary.php
-echo "        \$this->destroy = \$destroy;" >> php/melontary.php
-echo "        \$this->value = &\$value;" >> php/melontary.php
-echo "        \$this->data = &\$data;" >> php/melontary.php
-echo "    }" >> php/melontary.php
-echo "    function __destruct()" >> php/melontary.php
-echo "    {" >> php/melontary.php
-echo "        if (\$this->data != NULL && \$this->destroy != NULL)" >> php/melontary.php
-echo "            call_user_func(\$this->destroy, \$this->data);" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo "    public function execute(&\$fillValues)" >> php/melontary.php
 echo "    {" >> php/melontary.php
-echo "        return call_user_func(\$this->proc, \$fillValues, \$this->data);" >> php/melontary.php
+echo "        return call_user_func(\$this->proc, \$fillValues);" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo "}" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
@@ -126,18 +115,15 @@ echo "        if (isset(\$this->hooks[\$obj['var']]) === false) {" >> php/melont
 echo "            return \"\";" >> php/melontary.php
 echo "        }" >> php/melontary.php
 echo "        \$hook = \$this->hooks[\$obj['var']];" >> php/melontary.php
-echo "        if (\$hook->value === NULL) {" >> php/melontary.php
-echo "            if (isset(\$obj['values']) === false) {" >> php/melontary.php
+echo "        if (isset(\$obj['values']) === false) {" >> php/melontary.php
+echo "            \$values = array();" >> php/melontary.php
+echo "        } else {" >> php/melontary.php
+echo "            \$values = \$obj['values'];" >> php/melontary.php
+echo "            if (\$values == NULL) {" >> php/melontary.php
 echo "                \$values = array();" >> php/melontary.php
-echo "            } else {" >> php/melontary.php
-echo "                \$values = \$obj['values'];" >> php/melontary.php
-echo "                if (\$values == NULL) {" >> php/melontary.php
-echo "                    \$values = array();" >> php/melontary.php
-echo "                }" >> php/melontary.php
 echo "            }" >> php/melontary.php
-echo "            return \$hook->execute(\$values);" >> php/melontary.php
 echo "        }" >> php/melontary.php
-echo "        return \$hook->value;" >> php/melontary.php
+echo "        return \$hook->execute(\$values);" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo "    private function process(\$str, &\$end, \$exp)" >> php/melontary.php
 echo "    {" >> php/melontary.php
@@ -193,11 +179,10 @@ echo "    public function getConfPath()" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        return \$this->confPath;" >> php/melontary.php
 echo "    }" >> php/melontary.php
-echo "    public function addHook(\$key, callable \$proc, callable \$destroy," >> php/melontary.php
-echo "                            \$value = NULL, \$data = NULL)" >> php/melontary.php
+echo "    public function addHook(\$key, callable \$proc)" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        \$ret = \$this->hooks[\$key];" >> php/melontary.php
-echo "        \$hook = new mHook(\$proc, \$destroy, \$value, \$data);" >> php/melontary.php
+echo "        \$hook = new mHook(\$proc);" >> php/melontary.php
 echo "        \$this->hooks[\$key] = \$hook;" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
 echo "        return \$ret;" >> php/melontary.php

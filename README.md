@@ -58,22 +58,22 @@ Example
         <?php
         require_once('melontary.php');
 
-        function foo(&$fillValues, $data)
+        function foo1(&$fillValues)
         {
             return $fillValues['1st'];
         }
-        function destroy($data)
+        function foo2(&$values)
         {
-            return;
+            return 'Hello World';
         }
-        function fooC(&$values, $data)
+        function foo3(&$values)
         {
             return $values['2nd'];
         }
         $a = new melontary;
-        $a->addHook('a', 'foo', 'destroy');
-        $a->addHook('b', 'foo', 'destroy', 'Hello World');
-        $a->addHook('c', 'fooC', 'destroy');
+        $a->addHook('a', 'foo1');
+        $a->addHook('b', 'foo2');
+        $a->addHook('c', 'foo3');
         $result = $a->fillTemplate('example');
         echo $result;
         ?>

@@ -1,3 +1,6 @@
+Changes with melontary 1.0.3                                      17 Jan 2016
+    *) Optimized template component.
+
 Changes with melontary 1.0.2                                      14 Jan 2016
     *) Fixed a bug of Database.
     *) Fixed a bug of template component.
