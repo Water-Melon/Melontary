@@ -1,3 +1,7 @@
+Changes with melontary 1.0.4                                      18 Jan 2016
+    *) Added configuration component.
+    *) Optimized whole framework.
+
 Changes with melontary 1.0.3                                      17 Jan 2016
     *) Optimized template component.
 

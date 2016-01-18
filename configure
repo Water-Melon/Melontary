@@ -8,7 +8,7 @@
 root_path=`pwd`
 conf_path="$root_path/conf/melontary.xml"
 
-echo "Melontary framework V1.0.3."
+echo "Melontary framework V1.0.4."
 echo "Copyright (C) Niklaus F.Schen."
 
 #process parameters
@@ -62,45 +62,11 @@ echo "    private \$hooks;" >> php/melontary.php
 echo "    private \$template;" >> php/melontary.php
 echo "    private \$templateSuffix;" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
-echo "    function __construct(\$load_conf = 1)" >> php/melontary.php
+echo "    function __construct()" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        \$this->hooks = array();" >> php/melontary.php
-echo "        \$this->template = NULL;" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        if (!\$load_conf) return;" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        \$conf_path = \$this->confPath;" >> php/melontary.php
-echo "        if ((\$fh = fopen(\$conf_path, 'r')) == false) {" >> php/melontary.php
-echo "            throw new Exception('Open '.\$conf_path.' failed.');" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        \$parser = xml_parser_create('UTF-8');" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        xml_parser_set_option(\$parser, XML_OPTION_CASE_FOLDING, false);" >> php/melontary.php
-echo "        xml_set_element_handler(\$parser, \"self::startElement\", \"self::endElement\");" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "        while (\$data = fread(\$fh, 4096)) {" >> php/melontary.php
-echo "            if (!xml_parse(\$parser, \$data, feof(\$fh))) {" >> php/melontary.php
-echo "                \$msg = 'xml_parse error: '.xml_error_string(xml_get_error_code(\$parser));" >> php/melontary.php
-echo "                \$msg .= ('line: '.xml_get_current_line_number(\$parser));" >> php/melontary.php
-echo "                fclose(\$fh);" >> php/melontary.php
-echo "                xml_parser_free(\$parser);" >> php/melontary.php
-echo "                throw new Exception(\$msg);" >> php/melontary.php
-echo "            }" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "        fclose(\$fh);" >> php/melontary.php
-echo "        xml_parser_free(\$parser);" >> php/melontary.php
-echo "    }" >> php/melontary.php
-echo -en "\n" >> php/melontary.php
-echo "    private function startElement(\$parser, \$name, \$attributes)" >> php/melontary.php
-echo "    {" >> php/melontary.php
-echo "        if (\$name == 'template') {" >> php/melontary.php
-echo "            \$this->template = \$attributes['path'];" >> php/melontary.php
-echo "            \$this->templateSuffix = \$attributes['suffix'];" >> php/melontary.php
-echo "        }" >> php/melontary.php
-echo "    }" >> php/melontary.php
-echo "    private function endElement(\$parser, \$name)" >> php/melontary.php
-echo "    {" >> php/melontary.php
-echo "        return;" >> php/melontary.php
+echo "        \$this->template = 'templates';" >> php/melontary.php
+echo "        \$this->templateSuffix = 'html';" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
 echo "    private function parse(&\$str)" >> php/melontary.php
@@ -171,6 +137,11 @@ echo "        return \$ret;" >> php/melontary.php
 echo "    }" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
 echo -en "\n" >> php/melontary.php
+echo "    public function setTemplate(\$path='templates', \$suffix='html')" >> php/melontary.php
+echo "    {" >> php/melontary.php
+echo "        \$this->template = \$path;" >> php/melontary.php
+echo "        \$this->templateSuffix = \$suffix;" >> php/melontary.php
+echo "    }" >> php/melontary.php
 echo "    public function getRoot()" >> php/melontary.php
 echo "    {" >> php/melontary.php
 echo "        return \$this->root;" >> php/melontary.php

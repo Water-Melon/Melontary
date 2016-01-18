@@ -2,7 +2,7 @@
 /*
  * Copyright (C) Niklaus F.Schen.
  */
-require_once('melontary.php');
+require_once('m_conf.php');
 
 class mDBConnection
 {
@@ -66,50 +66,22 @@ class mDB
 {
     private $connections;
 
-    function __construct()
+    function __construct($conf)
     {
         $this->connections = array();
-
-        $melon = new melontary(0);
-        $conf_path = $melon->getConfPath();
-        if (($fh = fopen($conf_path, 'r')) == false) {
-            throw new Exception('Open '.$conf_path.' failed.');
+        $connections = $conf->get()['connection'];
+        $n = count($connections);
+        for ($i = 0; $i < $n; $i++) {
+            $connection = new mDBConnection($connections[$i]['user'],
+                                            $connections[$i]['password'],
+                                            $connections[$i]['ip'],
+                                            $connections[$i]['port']);
+            $this->connections[$connections[$i]['utility']] = $connection;
         }
-        $parser = xml_parser_create('UTF-8');
-        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, false);
-        xml_set_element_handler($parser, 'self::startElem', 'self::endElem');
-
-        while ($data = fread($fh, 4096)) {
-            if (!xml_parse($parser, $data, feof($fh))) {
-                $msg = "xml parse error: ".xml_error_string(xml_get_error_code($parser));
-                $msg .= ("line: ".xml_get_current_line_number($parser));
-                fclose($fh);
-                xml_parser_free($parser);
-                throw new Exception($msg);
-            }
-        }
-        fclose($fh);
-        xml_parser_free($parser);
     }
     function __destruct()
     {
         unset($this->connections);
-    }
-
-    private function startElem($parser, $name, $attributes)
-    {
-        if ($name === 'connection') {
-            $connection = new mDBConnection($attributes['user'],
-                                            $attributes['passwd'],
-                                            $attributes['ip'],
-                                            $attributes['port']);
-            $this->connections[$attributes['utility']] = $connection;
-            return;
-        }
-    }
-    private function endElem($parser, $name)
-    {
-        return;
     }
 
     private function quoteField(&$field)
